@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SQL Diff</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    // Apply the saved theme before first paint to avoid a light flash.
+    try {
+      const t = localStorage.getItem('sqldiff-theme');
+      if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+    } catch (e) {}
+  </script>
+</head>
+<body>
+  <header class="top">
+    <div class="title-row">
+      <h1>SQL Diff</h1>
+      <div class="seg" role="group" aria-label="Theme">
+        <button type="button" data-theme-btn="auto">Auto</button>
+        <button type="button" data-theme-btn="light">Light</button>
+        <button type="button" data-theme-btn="dark">Dark</button>
+      </div>
+    </div>
+    <p class="sub">Compare two versions of an Airflow SQL file — see how many lines were deleted and inserted, and where.</p>
+  </header>
+
+  <main>
+    <section class="inputs">
+      <div class="pane" id="pane-old">
+        <div class="pane-head">
+          <label for="old-text">Original</label>
+          <span class="fname" id="old-name"></span>
+          <label class="file-btn">Open file<input type="file" id="old-file" accept=".sql,.txt,.j2,text/plain" hidden></label>
+        </div>
+        <textarea id="old-text" spellcheck="false" placeholder="Paste the original SQL, or drop a .sql file here"></textarea>
+      </div>
+      <div class="swap-wrap"><button type="button" id="swap" title="Swap original and new">⇄</button></div>
+      <div class="pane" id="pane-new">
+        <div class="pane-head">
+          <label for="new-text">New</label>
+          <span class="fname" id="new-name"></span>
+          <label class="file-btn">Open file<input type="file" id="new-file" accept=".sql,.txt,.j2,text/plain" hidden></label>
+        </div>
+        <textarea id="new-text" spellcheck="false" placeholder="Paste the new SQL, or drop a .sql file here"></textarea>
+      </div>
+    </section>
+
+    <section class="options">
+      <label><input type="checkbox" id="opt-normalize"> Normalize SQL formatting</label>
+      <select id="opt-dialect" title="SQL dialect used for formatting">
+        <option value="sql">Standard SQL</option>
+        <option value="bigquery">BigQuery</option>
+        <option value="postgresql">PostgreSQL</option>
+        <option value="snowflake">Snowflake</option>
+        <option value="redshift">Redshift</option>
+        <option value="mysql">MySQL</option>
+        <option value="trino">Trino / Athena</option>
+        <option value="spark">Spark SQL</option>
+        <option value="tsql">SQL Server</option>
+      </select>
+      <label><input type="checkbox" id="opt-ws"> Ignore whitespace</label>
+      <label><input type="checkbox" id="opt-collapse" checked> Collapse unchanged lines</label>
+      <span class="spacer"></span>
+      <div class="seg" role="group" aria-label="View mode">
+        <button type="button" id="view-split" class="on">Side by side</button>
+        <button type="button" id="view-unified">Unified</button>
+      </div>
+    </section>
+
+    <div id="banner" class="banner" hidden></div>
+
+    <section class="summary" id="summary" hidden>
+      <div class="stats">
+        <div class="stat del"><span class="num" id="s-del">0</span><span class="lbl">lines deleted<br><small>from original</small></span></div>
+        <div class="stat ins"><span class="num" id="s-ins">0</span><span class="lbl">lines inserted<br><small>in new</small></span></div>
+        <div class="stat"><span class="num" id="s-eq">0</span><span class="lbl">unchanged</span></div>
+        <div class="stat"><span class="num" id="s-hunks">0</span><span class="lbl">change blocks</span></div>
+        <div class="stat"><span class="num" id="s-total">0 → 0</span><span class="lbl">total lines</span></div>
+      </div>
+      <dl class="ranges">
+        <dt>Deleted (original line numbers)</dt><dd id="r-del">—</dd>
+        <dt>Inserted (new line numbers)</dt><dd id="r-ins">—</dd>
+      </dl>
+      <div class="table-wrap" id="hunk-wrap">
+        <table class="hunks">
+          <thead><tr><th>#</th><th>Original lines</th><th>New lines</th><th>−</th><th>+</th></tr></thead>
+          <tbody id="hunk-body"></tbody>
+        </table>
+      </div>
+      <div class="actions">
+        <button type="button" id="copy-md">Copy summary (Markdown)</button>
+        <button type="button" id="copy-patch">Copy unified diff</button>
+        <span class="spacer"></span>
+        <button type="button" id="prev-change" title="Previous change">↑ Prev</button>
+        <button type="button" id="next-change" title="Next change">↓ Next</button>
+        <span id="toast" class="toast" aria-live="polite"></span>
+      </div>
+    </section>
+
+    <section class="diff-wrap"><div id="diff" class="diff"></div></section>
+  </main>
+
+  <script src="vendor/diff.min.js"></script>
+  <script src="vendor/sql-formatter.min.js"></script>
+  <script src="diff-core.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
